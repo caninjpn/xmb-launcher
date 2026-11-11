@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Connection indicator in the status cluster. Type only (Wi-Fi / Ethernet /
+         Offline) so we never need the location permission that SSID or RSSI require. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Watch Next poster art is often an https:// URL rather than a content:// one. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!--
+      Continue Watching uses real system-wide recency. Fire OS stubs out
+      android.settings.USAGE_ACCESS_SETTINGS with a CTS dummy activity, so there is no
+      UI to grant this. Grant it once over ADB:
+          adb shell appops set com.ember.xmb GET_USAGE_STATS allow
+      Declared but ungranted is harmless — the repository falls back to our own
+      launch history.
+    -->
+    <uses-permission
+        android:name="android.permission.PACKAGE_USAGE_STATS"
+        tools:ignore="ProtectedPermissions" />
+
+    <!-- Continue Watching reads the Android TV "Watch Next" provider where one exists.
+         Fire OS does not always ship it; the repository degrades gracefully. -->
+    <uses-permission android:name="com.android.providers.tv.permission.READ_EPG_DATA" />
+
+    <!-- A TV device has no touchscreen and we must not be filtered out for that. -->
+    <uses-feature android:name="android.software.leanback" android:required="true" />
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+
+    <!-- Package visibility (Android 11+). Narrow queries rather than
+         QUERY_ALL_PACKAGES: we only ever need things that are launchable. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+        </intent>
+    </queries>
+
+    <application
+        android:allowBackup="true"
+        android:banner="@drawable/banner"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Xmb">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:stateNotNeeded="true"
+            android:excludeFromRecents="true"
+            android:screenOrientation="landscape"
+            android:resizeableActivity="false"
+            android:theme="@style/Theme.Xmb"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenLayout|screenSize|smallestScreenSize|uiMode|density">
+
+            <!-- HOME + DEFAULT make this selectable as a launcher.
+                 LEANBACK_LAUNCHER makes it visible on a TV launcher grid. -->
+            <!-- No android:priority, and that is deliberate.
+                 Amazon's launcher holds priority=950 on its HOME filter. We tested
+                 960 — legal, inside the documented range of > -1000 and < 1000, and
+                 confirmed present in the compiled manifest via aapt2. The platform
+                 still recorded our filter as 0: activity intent-filter priority is
+                 forced to 0 for non-privileged packages. Amazon keeps 950 only
+                 because its launcher is a privileged system app. -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

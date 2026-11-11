@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Ember XMB</string>
+
+    <string name="cat_users">Users</string>
+    <string name="cat_continue">Continue Watching</string>
+    <string name="cat_apps">Apps</string>
+    <string name="cat_games">Games</string>
+    <string name="cat_video">Video</string>
+    <string name="cat_music">Music</string>
+    <string name="cat_photo">Photo</string>
+    <string name="cat_settings">Settings</string>
+
+    <string name="menu_open">Open</string>
+    <string name="menu_move">Move</string>
+    <string name="menu_fav_add">Add to favourites</string>
+    <string name="menu_fav_remove">Remove from favourites</string>
+    <string name="menu_category">Move to category…</string>
+    <string name="menu_info">Info</string>
+    <string name="category_title">Move “%1$s” to</string>
+    <string name="menu_uninstall">Uninstall</string>
+    <string name="menu_rearrange">Rearrange categories</string>
+
+    <string name="theme_title">Background Theme</string>
+    <string name="theme_auto">Auto — season &amp; time</string>
+
+    <string name="net_wifi">Wi-Fi</string>
+    <string name="net_ethernet">Ethernet</string>
+    <string name="net_offline">Offline</string>
+
+    <string name="hint_category">Category</string>
+    <string name="hint_item">Item</string>
+    <string name="hint_open">Open</string>
+    <string name="hint_menu">Menu</string>
+    <string name="hint_hold_select">Hold Select</string>
+
+    <string name="move_toast">Up / Down to reorder, Select to drop</string>
+    <string name="rearrange_toast">Left / Right to move, Select to drop</string>
+    <string name="empty_continue">Nothing in progress yet</string>
+    <string name="empty_category">Nothing here yet</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_network">Network</string>
+    <string name="settings_display">Display &amp; Sound</string>
+    <string name="settings_apps">Applications</string>
+    <string name="settings_device">Device</string>
+    <string name="settings_developer">Developer Options</string>
+    <string name="settings_about">About</string>
+</resources>

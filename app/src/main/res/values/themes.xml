@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      The window background MUST be transparent.
+
+      The animated background is a GLSurfaceView, and a SurfaceView's surface is
+      composited BELOW the app window rather than inside it. The window therefore has
+      to be see-through for the GL layer to be visible, and the Compose tree on top
+      must not paint an opaque background of its own. The base colour you actually see
+      is the GL clear colour in WaveRenderer.
+    -->
+    <style name="Theme.Xmb" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:colorBackgroundCacheHint">@null</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowDisablePreview">true</item>
+        <item name="android:windowActionBar">false</item>
+    </style>
+</resources>

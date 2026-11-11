@@ -1,0 +1,23 @@
+*.iml
+.gradle/
+.idea/
+build/
+local.properties
+.DS_Store
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+
+# Fire TV device dumps pulled off the box for research: Amazon's proprietary
+# APKs, plus dumpsys/getprop output that carries the device serial number and
+# the remote's Bluetooth MAC. Kept locally, never committed. The README that
+# describes what was pulled is fine to track.
+pulled/*
+!pulled/README.md
+
+# Sony's XMB icons, extracted from the source sheet. Personal theming only.
+icons/ps3-extracted/
+*.keystore
+!debug.keystore

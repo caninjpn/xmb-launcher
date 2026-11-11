@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Leanback banner: 320x180, shown on TV launcher grids. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="320dp"
+    android:height="180dp"
+    android:viewportWidth="320"
+    android:viewportHeight="180">
+
+    <path
+        android:fillColor="#070B16"
+        android:pathData="M0,0h320v180h-320z" />
+
+    <!-- flowing ribbon -->
+    <path
+        android:strokeColor="#FFB259"
+        android:strokeWidth="3"
+        android:strokeAlpha="0.85"
+        android:fillColor="#00000000"
+        android:strokeLineCap="round"
+        android:pathData="M-6,120 C50,86 96,140 148,112 C196,86 246,118 326,92" />
+    <path
+        android:strokeColor="#FFD9A8"
+        android:strokeWidth="1.6"
+        android:strokeAlpha="0.5"
+        android:fillColor="#00000000"
+        android:strokeLineCap="round"
+        android:pathData="M-6,136 C56,104 104,156 156,128 C204,102 252,132 326,108" />
+
+    <!-- the cross -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.32"
+        android:pathData="M24,74h272v2h-272z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.32"
+        android:pathData="M86,26h2v128h-2z" />
+
+    <!-- selected node -->
+    <path
+        android:fillColor="#FFB259"
+        android:pathData="M87,75m-9,0a9,9 0,1 1,18 0a9,9 0,1 1,-18 0" />
+</vector>
