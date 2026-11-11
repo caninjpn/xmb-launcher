@@ -12,6 +12,28 @@ granted here. The source itself is all rights reserved.
 
 ---
 
+## Download
+
+[**ember-xmb-debug.apk**](https://github.com/caninjpn/xmb-launcher/releases/latest/download/ember-xmb-debug.apk)
+— 11.8 MB, Android 7.1+ (`minSdk 25`), GLES 2.0. That link always points at the
+[latest release](https://github.com/caninjpn/xmb-launcher/releases/latest).
+
+**It is a debug build**, and worth knowing what that means before you install it:
+
+- signed with the standard `CN=Android Debug` key, the one every developer's debug
+  builds share, so the signature identifies nobody and anything signed with the same
+  well-known key can update it;
+- `android:debuggable` is true, so any process with ADB access to the device can attach
+  a debugger and read the app's data.
+
+Fine for a launcher on a TV in your living room. Not something to put on a device that
+matters. There is no signed release build yet — `buildTypes.release` has no
+`signingConfig` — so building from source is the alternative, not a safer download.
+
+Then follow [Install](#install), substituting the downloaded file for the built one.
+
+---
+
 ## What it does
 
 - **The XMB cross.** A horizontal category row crossed by a vertical item column. The
@@ -126,6 +148,12 @@ Over USB, nothing else is needed:
 
 ```bash
 adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
+
+If you downloaded the APK rather than building it, use its filename instead:
+
+```bash
+adb install -r ember-xmb-debug.apk
 ```
 
 Over the network, connect first — the IP is under **Settings → Network**:
