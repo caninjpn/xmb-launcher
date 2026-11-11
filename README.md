@@ -120,9 +120,8 @@ gitignored — on another machine, let Studio regenerate it.
 
 ## Install
 
-Anything running Android 7.1 or
-later with a D-pad remote will take it: `minSdk` is 25, and the background needs only
-GLES 2.0.
+Anything running Android 7.1 or later with a D-pad remote will take it: `minSdk` is 25,
+and the background needs only GLES 2.0.
 
 ### 1. Unlock developer options
 
