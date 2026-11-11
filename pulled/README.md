@@ -9,6 +9,12 @@ on a device you own, for inspection on that basis. Don't redistribute them.
 `pulled/apk/` is gitignored for that reason, and because 41 MB of binaries doesn't
 belong in a repo.
 
+**Only this file is in the repository.** `pulled/config/` and `pulled/keylayout/` are
+gitignored too: `getprop.txt` carries the device serial number and `dumpsys-input.txt`
+carries the remote's Bluetooth MAC, neither of which belongs in a public repo. The file
+paths quoted below therefore describe a local working copy, not anything you can open
+from a clone. The findings themselves are reproduced in full in the text here.
+
 ---
 
 ## What the launcher's manifest settles
