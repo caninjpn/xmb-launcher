@@ -14,21 +14,25 @@ granted here. The source itself is all rights reserved.
 
 ## Download
 
-[**ember-xmb-debug.apk**](https://github.com/caninjpn/xmb-launcher/releases/latest/download/ember-xmb-debug.apk)
-— 11.8 MB, Android 7.1+ (`minSdk 25`), GLES 2.0. That link always points at the
+[**xmb-launcher.apk**](https://github.com/caninjpn/xmb-launcher/releases/latest/download/xmb-launcher.apk)
+— 1.0 MB, Android 7.1+ (`minSdk 25`), GLES 2.0. That link always points at the
 [latest release](https://github.com/caninjpn/xmb-launcher/releases/latest).
 
-**It is a debug build**, and worth knowing what that means before you install it:
+A signed release build: R8-minified, and `android:debuggable` is false, so a debugger
+cannot attach to it. The signature is a self-generated key (`CN=Ember XMB`), which
+proves successive builds came from the same keystore and nothing more — it is not an
+identity any store has vetted.
 
-- signed with the standard `CN=Android Debug` key, the one every developer's debug
-  builds share, so the signature identifies nobody and anything signed with the same
-  well-known key can update it;
-- `android:debuggable` is true, so any process with ADB access to the device can attach
-  a debugger and read the app's data.
+**Coming from v1.0 needs an uninstall first.** That release was the debug APK, signed
+with the shared `CN=Android Debug` key, and Android refuses to replace an app with one
+signed differently:
 
-Fine for a launcher on a TV in your living room. Not something to put on a device that
-matters. There is no signed release build yet — `buildTypes.release` has no
-`signingConfig` — so building from source is the alternative, not a safer download.
+```bash
+adb uninstall com.ember.xmb
+```
+
+That clears the app's preferences too — favourites, manual category assignments, the
+row order and the theme all return to defaults.
 
 Then follow [Install](#install), substituting the downloaded file for the built one.
 
@@ -115,6 +119,18 @@ The APK lands in `app/build/outputs/apk/debug/app-debug.apk` (~11.9 MB).
 
 `local.properties` already points at `C:\Users\wongc\AppData\Local\Android\Sdk`. It is
 gitignored — on another machine, let Studio regenerate it.
+
+### Release signing
+
+`assembleRelease` signs with the key described by `keystore.properties` at the project
+root. That file is gitignored and so is absent from a clone: copy
+`keystore.properties.example`, then create the keystore with the `keytool` line in its
+comments. Without the file the release build still succeeds — it just produces an
+unsigned APK, since being unable to build at all is the worse failure.
+
+The keystore is the app's identity, not a convenience. Lose it and no future build can
+ever update an install signed with it; leak it and someone else can publish updates in
+your name. Keep a backup outside the project folder.
 
 ---
 

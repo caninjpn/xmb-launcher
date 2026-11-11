@@ -19,5 +19,11 @@ pulled/*
 
 # Sony's XMB icons, extracted from the source sheet. Personal theming only.
 icons/ps3-extracted/
+# App signing. The keystore IS the app's identity: losing it means never being able
+# to update an install signed with it, and leaking it means someone else can. Neither
+# the key nor the passwords are ever committed.
 *.keystore
+*.jks
+keystore.properties
 !debug.keystore
+!keystore.properties.example

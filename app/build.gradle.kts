@@ -1,7 +1,18 @@
+import java.util.Properties
+
 plugins {
     // Kotlin itself is built into AGP 9; the Compose compiler plugin is not.
     id("com.android.application")
     id("org.jetbrains.kotlin.plugin.compose")
+}
+
+// App signing. The key and its passwords live in keystore.properties at the project
+// root, which is gitignored, so neither ever enters the repository. If the file is
+// absent -- a fresh clone, CI without the secret -- the release build is left unsigned
+// instead of failing, because being unable to build at all is the worse outcome.
+val keystorePropsFile = rootProject.file("keystore.properties")
+val keystoreProps = Properties().apply {
+    if (keystorePropsFile.exists()) keystorePropsFile.inputStream().use { load(it) }
 }
 
 android {
@@ -13,12 +24,25 @@ android {
         // Fire OS 6 (Android 7.1) and up, which covers every current Fire TV device.
         minSdk = 25
         targetSdk = 37
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1"
+    }
+
+    signingConfigs {
+        if (keystorePropsFile.exists()) {
+            create("release") {
+                storeFile = rootProject.file(keystoreProps.getProperty("storeFile"))
+                storePassword = keystoreProps.getProperty("storePassword")
+                keyAlias = keystoreProps.getProperty("keyAlias")
+                keyPassword = keystoreProps.getProperty("keyPassword")
+            }
+        }
     }
 
     buildTypes {
         release {
+            // Null when keystore.properties is absent, which leaves the APK unsigned.
+            signingConfig = signingConfigs.findByName("release")
             // The launcher is small; shrinking mainly trims Compose. Keep it on.
             isMinifyEnabled = true
             isShrinkResources = true
