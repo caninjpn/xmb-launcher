@@ -4,6 +4,10 @@ A PS3 XrossMediaBar launcher for Fire TV / Android TV, in Kotlin and Compose.
 
 The design was locked in an interactive prototype first; this is the native port of it.
 
+**Artwork, trademarks and licensing: see [NOTICE](NOTICE).** The PS3 icons under
+`app/src/main/res/drawable-nodpi/` are Sony's, not mine, and no licence to them is
+granted here. The source itself is all rights reserved.
+
 ---
 
 ## What it does
@@ -384,11 +388,16 @@ seasonal theme, and the theme picker persisting across restarts. Idles at ~3% CP
 | What | Where |
 |---|---|
 | Wave speed | `WaveRenderer.speed` (1.0 = as designed) |
-| Frame pacing | `WaveView.FRAME_MS` (33 = 30fps) |
-| Ribbon shape | the three `band(...)` calls in `Shaders.FRAGMENT` |
-| Shimmer density | the three `motes(...)` calls, and the mote radius |
-| Palette spread | `SPREAD_LO` / `SPREAD_HI` in `XmbThemes` (the analogous window) |
+| Frame pacing | `FRAME_MS_DEFAULT` / `FRAME_MS_LOW_END` in `WaveView.kt` (33 = 30fps, 66 = 15fps) |
+| Ribbon shape | the three `Band(...)` entries in `WaveRenderer.BANDS`, in `WaveView.kt` |
+| Band colours | `syncColours()` in `WaveView.kt`; the shader only reads the uniforms |
+| Palette spread | `SPREAD_LO` / `SPREAD_HI` in `XmbPalette.kt` (the analogous window) |
 | Cross geometry | `rememberMetrics` in `XmbScreen.kt` |
+
+The last three rows moved when the background was rewritten. Ribbon shape used to
+live in `band(...)` calls inside a single `Shaders.FRAGMENT`; the bands are now
+triangle strips whose geometry comes from `BANDS`, so there is no per-pixel band
+function left to edit. The shimmer `motes(...)` layer was dropped at the same time.
 
 ### Typeface
 

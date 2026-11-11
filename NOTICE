@@ -1,0 +1,50 @@
+NOTICE
+======
+
+Third-party material in this repository, and what it is not licensed for.
+
+
+PlayStation 3 XMB icon artwork
+------------------------------
+
+The 14 files matching app/src/main/res/drawable-nodpi/ps3_*.png are icons from
+the PlayStation 3 XrossMediaBar. They are the work and property of Sony
+Interactive Entertainment Inc. They were extracted from PS3 system assets and
+are included here only so that this launcher reproduces the XMB appearance on
+the author's own devices.
+
+No licence to those files is granted by this repository, and none can be --
+they are not the author's to license. Cloning this repository conveys no right
+to use, copy, modify or redistribute them.
+
+If you want a build that carries no Sony artwork, the original hand-drawn
+vector icon set is still in the source and nothing was deleted when the PS3 art
+went in: XmbIcons.category() and XmbIcons.glyph() return it, alongside the
+XmbIcons.categoryRes() and XmbIcons.glyphRes() lookups that point at the PNGs.
+
+
+Amazon Fire OS material
+-----------------------
+
+Amazon's APKs, and the device dumps taken off a Fire TV over ADB while this
+launcher was being developed, are deliberately not in this repository -- see
+pulled/README.md, which is the only file kept from that directory. The APKs are
+Amazon's proprietary software. The dumps carry device identifiers.
+
+
+Trademarks and affiliation
+--------------------------
+
+PlayStation and XrossMediaBar are trademarks of Sony Interactive Entertainment
+Inc. Amazon, Fire TV and Fire OS are trademarks of Amazon.com, Inc. or its
+affiliates. Android and Google TV are trademarks of Google LLC.
+
+This is a personal hobby project. It is not affiliated with, authorised by,
+sponsored by or endorsed by any of them.
+
+
+The rest of the repository
+--------------------------
+
+The source code is the author's own. No open-source licence is granted over it;
+all rights reserved.
