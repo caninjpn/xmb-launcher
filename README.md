@@ -1,6 +1,8 @@
 # Ember XMB
 
-A PS3 XrossMediaBar launcher for Fire TV / Android TV, in Kotlin and Compose.
+A PS3 XrossMediaBar launcher for Android TV, in Kotlin and Compose. Fire TV is one
+Android TV among several, and the most restrictive of them; where it differs, this
+README says so.
 
 The design was locked in an interactive prototype first; this is the native port of it.
 
@@ -38,14 +40,8 @@ granted here. The source itself is all rights reserved.
   a gradient pass and one vertex-shaped strip per band.
 - **Key legend** that only appears when a keyboard or mouse is actually attached.
 
-### One-time setup for Continue Watching
-
-```bash
-adb shell appops set com.ember.xmb GET_USAGE_STATS allow
-```
-
-Without it the row falls back to apps opened from this launcher only. Why it needs
-ADB rather than a Settings toggle is explained under Known limits.
+Continue Watching needs one `appops` grant to see system-wide recency rather than only
+what you launched from here. It is step 4 of Install.
 
 ---
 
@@ -100,36 +96,79 @@ gitignored — on another machine, let Studio regenerate it.
 
 ---
 
-## Install on the Fire TV
+## Install
 
-1. On the device: **Settings → My Fire TV → About**, click the device name **7 times**
-   to unlock Developer Options.
-2. **Settings → My Fire TV → Developer Options → ADB Debugging: On**. Note the IP
-   under **About → Network**.
-3. From your computer:
+There is no store listing, so it installs over ADB. Anything running Android 7.1 or
+later with a D-pad remote will take it: `minSdk` is 25, and the background needs only
+GLES 2.0.
 
-```bash
-adb connect <fire-tv-ip>:5555
-```
+### 1. Unlock developer options
 
-Accept the prompt that appears on the TV, then:
+The build number is the switch on every Android TV. Only the menu holding it is
+renamed per vendor:
+
+| Platform | Path | Click 7 times on |
+|---|---|---|
+| Stock Android TV | **Settings → Device Preferences → About** | **Build** |
+| Google TV | **Settings → System → About** | **Android TV OS build** |
+| Fire TV | **Settings → My Fire TV → About** | the **device name** |
+
+### 2. Turn on ADB
+
+**Developer options** appears as its own entry once unlocked — under *Device
+Preferences* on stock Android TV, under *My Fire TV* on Fire OS. Enable **USB
+debugging** there. Boxes that accept ADB over the network expose that in the same
+place, named variously *ADB debugging*, *Network debugging* or *Wireless debugging*.
+
+### 3. Install
+
+Over USB, nothing else is needed:
 
 ```bash
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
+Over the network, connect first — the IP is under **Settings → Network**:
+
+```bash
+adb connect <tv-ip>:5555
+```
+
+Accept the authorisation prompt that appears on the TV, then run the same `install`
+line. If `connect` times out, the box either has network ADB switched off or has gone
+to sleep; both look identical from the computer.
+
+### 4. Grant usage access, for Continue Watching
+
+```bash
+adb shell appops set com.ember.xmb GET_USAGE_STATS allow
+```
+
+Without it, Continue Watching falls back to apps opened from this launcher only. Some
+boxes expose the same grant as **Settings → Apps → Special app access → Usage access**,
+but many TV builds omit that screen altogether and Fire OS ships a stub in its place
+(measured — see Known limits), so the ADB line is the one route that works everywhere.
+
 ### Making it the home screen
 
-Press the **Home** button. Fire OS shows a chooser if more than one launcher is
-installed; pick Ember XMB.
+**This is the step that varies most between boxes**, so ask yours rather than assuming.
+After installing:
 
-**On the newest Fire TV hardware it may not offer the choice at all.** Amazon wires the
-Home button directly to its own launcher, the bootloader is locked, and there is no
-supported way around that. If Home will not switch, the practical setup is:
+```bash
+adb shell cmd package resolve-activity -c android.intent.category.HOME -a android.intent.action.MAIN
+```
 
-- Launch Ember XMB from the Apps row, and
-- Remap a different remote button to it (Button Mapper via Accessibility), treating
-  that button as your real Home.
+Whatever that names is what the Home button will open. Three outcomes:
+
+- **It names `com.ember.xmb/.MainActivity`** — done, nothing further to do.
+- **Pressing Home offers a chooser** — pick Ember XMB. This is the normal case on AOSP
+  boxes, where the bundled launcher is an ordinary package with no priority on its HOME
+  filter.
+- **It keeps naming the stock launcher and no chooser ever appears** — that launcher is
+  a privileged system app holding a priority a sideloaded package cannot outbid. Fire TV
+  is the measured example; see *Why the Home button cannot be claimed*. The practical
+  setup then is to launch Ember XMB from the apps row and remap a spare remote button to
+  it (Button Mapper, via Accessibility), treating that button as your real Home.
 
 ### Uninstall
 
@@ -175,22 +214,34 @@ quads per frame on the CPU. That is fine in a desktop browser and wrong for a TV
 
 ---
 
-## Known limits on Fire TV
+## Known limits
 
-These are platform facts, not bugs to fix:
+These are platform facts, not bugs to fix. Split by whether they hold for Android TV
+generally or only for Fire OS, because the two get conflated constantly.
+
+### Any Android TV
 
 | Area | Reality |
 |---|---|
-| **Home button** | Cannot be claimed. Measured on device — see below. |
-| **Uninstall** | `ACTION_DELETE` is refused for system packages — every Amazon preinstall. Those rows are greyed out. Removing them needs `adb shell pm disable-user --user 0 <pkg>`. |
-| **Continue Watching** | Measured on device: the *Watch Next*, preview-program and channel providers all exist and are all **completely empty** — nothing on Fire OS writes to them. Amazon's own row is fed by private signed providers a third-party launcher cannot read, and no public provider carries playback position or episode titles. So the row shows genuine **recently-watched apps** from `UsageStatsManager`, not invented episode progress. See below for why that is also true on stock Android TV. |
-| **Usage access** | `android.settings.USAGE_ACCESS_SETTINGS` resolves to `com.amazon.tv.settings.v2.compliance.CTSDummySettingActivity` — a stub Amazon ships to pass compliance tests. There is no working UI to grant it, hence the ADB command above. |
-| **`queryUsageStats` is near-useless here** | It returned 222 buckets of which only 5 carried a usable `lastTimeUsed`. The **event stream** (`queryEvents`, `MOVE_TO_FOREGROUND`) is where the history actually lives, so that is the primary source with the buckets as fallback. |
-| **Users** | No public API lets a third-party launcher enumerate or switch Fire TV profiles. The category shows the current profile name and a route into system settings. Nothing more is possible. |
-| **Move / favourites / category order** | Not system concepts. Every TV launcher keeps its own; ours live in `SharedPreferences`. The category row order is stored as keys, and keys it does not mention keep their default order and land at the end — so a category added in a later version appears for people who have already rearranged the row, rather than silently vanishing. |
+| **Home button** | Claimable only where the stock launcher is an ordinary package. Android forces activity intent-filter priority to 0 for every **non-privileged** package, so a launcher shipped in `priv-app` carrying a priority on its HOME filter always wins and no chooser is ever offered. Ask your box with the `resolve-activity` command under Install. |
+| **Uninstall** | `ACTION_DELETE` is refused for system packages — on Fire TV that means every Amazon preinstall, elsewhere whatever the vendor bundled. Those rows are greyed out. Removing them needs `adb shell pm disable-user --user 0 <pkg>`. |
+| **Continue Watching** | Measured on both test devices: the *Watch Next*, preview-program and channel providers all exist and are all **completely empty**. No public provider on either box carries playback position or episode titles, and a stock launcher's own row is fed by private signed providers a third-party launcher cannot read. So the row shows genuine **recently-watched apps** from `UsageStatsManager`, not invented episode progress. Full evidence below, including how to make real poster art appear. |
+| **Users** | No public API lets a third-party launcher enumerate or switch TV profiles. The category shows the current profile name and a route into system settings. Nothing more is possible. |
+| **Move / favourites / category order** | Not system concepts anywhere. Every TV launcher keeps its own; ours live in `SharedPreferences`. The category row order is stored as keys, and keys it does not mention keep their default order and land at the end — so a category added in a later version appears for people who have already rearranged the row, rather than silently vanishing. |
+
+### Fire TV specifically
+
+Measured on an **AFTCU864A2** (Fire OS 8.1.8.5, Android 11). These are the points where
+Fire OS departs from stock, and each one cost real debugging time to find.
+
+| Area | Reality |
+|---|---|
+| **Home button** | Not merely a chooser you lose — a resolution you never enter. Amazon's launcher holds priority 950 as a privileged system app. Full measurement immediately below. |
+| **Usage access** | `android.settings.USAGE_ACCESS_SETTINGS` resolves to `com.amazon.tv.settings.v2.compliance.CTSDummySettingActivity` — a stub Amazon ships to pass compliance tests. There is no working UI to grant it, which is why the ADB line under Install is not optional here. |
+| **`queryUsageStats` is near-useless here** | It returned 222 buckets of which only 5 carried a usable `lastTimeUsed`. The **event stream** (`queryEvents`, `MOVE_TO_FOREGROUND`) is where the history actually lives, so that is the primary source with the buckets as fallback. That ordering is a safe default on any box. |
 | **Phantom keyboard and mouse** | Fire OS ships two synthetic input devices that are *always* connected: `amzkeyboard` (reports `KEYBOARD_TYPE_ALPHABETIC`) and `kcmouse` (reports `SOURCE_MOUSE`). Any "is a keyboard attached?" check based on sources or keyboard type alone is true on every Fire TV. Both report vendor/product `0x0000`, while real HID peripherals do not — that is what `rememberHasKeyboardOrMouse()` filters on. |
 
-### Why the Home button cannot be claimed
+### Why the Home button cannot be claimed on Fire TV
 
 Not folklore — this is what the device reports. Every activity registered for
 `CATEGORY_HOME`, with the priority the system actually recorded:
@@ -375,11 +426,31 @@ entirely, and both attempts at it were treating a symptom.
 
 ### Verified on hardware
 
-Built and run on an **AFTCU864A2** (Fire TV, Android 11 / SDK 30), installed over
-network ADB. Confirmed working: the GL background composites under Compose, the
-shader links, app icons and labels load from `PackageManager`, D-pad navigation,
-long-press context menu with Uninstall correctly disabled for system packages, the
-seasonal theme, and the theme picker persisting across restarts. Idles at ~3% CPU.
+Two devices, both over network ADB, deliberately at opposite ends of the range:
+
+| | Fire TV | Android TV box |
+|---|---|---|
+| Model | **AFTCU864A2** | **SDMC DM8261_NEBULA** |
+| OS | Fire OS 8.1.8.5 / Android 11 | Android 9 |
+| GPU | — | Mali-450 MP, GLES 2.0 only |
+| Panel / RAM | 1080p | 720p / 2 GB |
+
+Confirmed on the Fire TV: the GL background composites under Compose, the shader links,
+app icons and labels load from `PackageManager`, D-pad navigation, long-press context
+menu with Uninstall correctly disabled for system packages, the seasonal theme, and the
+theme picker persisting across restarts. Idles at ~3% CPU, `Slow UI thread: 0`.
+
+Confirmed on the Nebula box: the background at native 1280x720 and 11.7 ms of GPU per
+frame, the frame pump holding `avg=66ms worst=72ms` against a 66 ms target, the ordered
+dither surviving to the framebuffer, ribbon edge jitter at 0.08 px median, and category
+reordering end to end — including the order surviving a force-stop.
+
+**What has not been checked where.** The Fire TV figures above predate the background
+rewrite, the PS3 icon artwork, the preview-program path in Continue Watching and the
+rearrangeable category row; that box has been off the network since, so those four were
+verified on the Nebula box only. Neither device is a Google-certified Android TV or
+Google TV box, so the Google TV row in the install table is standard platform procedure
+rather than something measured here.
 
 ---
 

@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # Undo everything debloat.sh disabled, in one go.
 #
+# Fire TV only. Every package below is an Amazon one, so this script has nothing
+# to say to a generic Android TV box; on one, `pm list packages` is the place to
+# start instead.
+#
 #   adb connect <fire-tv-ip>:5555
 #   bash re-enable-all.sh
 #
