@@ -27,3 +27,9 @@ icons/ps3-extracted/
 keystore.properties
 !debug.keystore
 !keystore.properties.example
+
+# Written by tools/. tv.conf holds this network's TV address, and state/ holds device
+# snapshots (package lists, getprop and settings carry serial numbers and MAC addresses),
+# the disabled-package log and screenshots. All local, none of it belongs in the repo.
+tools/tv.conf
+state/

@@ -139,6 +139,10 @@ your name. Keep a backup outside the project folder.
 Anything running Android 7.1 or later with a D-pad remote will take it: `minSdk` is 25,
 and the background needs only GLES 2.0.
 
+The steps below are the manual route, and worth reading once so you know what is being done
+to your TV. If you would rather not type them, [`tools/`](#tools) does the same thing in one
+command and can undo it in one more.
+
 ### 1. Unlock developer options
 
 The build number is the switch on every Android TV. Only the menu holding it is
@@ -218,6 +222,50 @@ Whatever that names is what the Home button will open. Three outcomes:
 ```bash
 adb uninstall com.ember.xmb
 ```
+
+---
+
+## Tools
+
+`tools/` is the whole install reduced to a handful of scripts. They work in Git Bash on
+Windows, and on macOS and Linux. Run `tools/connect.sh` once and the rest remember the TV.
+
+```bash
+tools/connect.sh                  # USB or Wi-Fi? asks, tests, remembers in tools/tv.conf
+tools/backup.sh                   # snapshot the TV BEFORE changing anything
+tools/build-install.sh            # build, install, grant usage access, take HOME, verify
+tools/shot.sh home                # screenshot, optionally after some D-pad keys
+tools/restore.sh                  # put everything back
+```
+
+| Script | What it does |
+|---|---|
+| `connect.sh` | Picks USB or Wi-Fi, proves the connection works, writes `tools/tv.conf`. Says so if the box is a Fire TV. |
+| `backup.sh` | Package lists, HOME apps, `getprop` and all three settings namespaces into `state/backup-<date>-<time>/`. `restore.sh` reads settings from the **oldest** one, so take it first. |
+| `build-install.sh` | `--debug`, `--build-only`, `--reinstall`. Explains install failures instead of printing a raw `pm` error. |
+| `shot.sh` | `shot.sh <name> [KEYCODE ...]` → `state/shots/<name>.png`. |
+| `disable.sh` | `disable.sh <batch> <pkg>...` or `--list <file>`. One `pm` call per package, each success logged to `state/disabled.txt`. |
+| `reapply.sh` | After a firmware update: re-disable what came back, retake HOME. Safe to run repeatedly. |
+| `restore.sh` | Re-enable everything, hand HOME back to the stock launcher, restore settings. `--fire-tv` also re-enables [`tools/fire-tv-packages.txt`](tools/fire-tv-packages.txt); `--uninstall-launcher` removes Ember XMB too. |
+
+Nothing is ever uninstalled: `pm disable-user` hides a package from the current user, so
+everything `disable.sh` touches can be put back exactly as it was. `tools/tv.conf` and `state/`
+are gitignored — the snapshots contain the device serial and MAC addresses.
+
+[`PROMPT.md`](PROMPT.md) is the same workflow written for an AI coding assistant to carry out,
+if you would rather delegate than type.
+
+### What these scripts will not do
+
+They will not take the Home button on a Fire TV, because nothing can — see
+[below](#why-the-home-button-cannot-be-claimed-on-fire-tv). `build-install.sh` checks what
+actually has focus afterwards rather than trusting `set-home-activity`, which returns Success
+on Fire TV and changes nothing.
+
+They also run no helper daemon on the TV. A launcher that wants to kill other apps or free
+memory needs a process with more privilege than an app has, and the usual trick — leaving a
+listener open on localhost that runs shell commands as uid 2000 — means any app on the device
+can drive it. Ember XMB has no such feature and opens no such door.
 
 ---
 
@@ -488,12 +536,27 @@ frame, the frame pump holding `avg=66ms worst=72ms` against a 66 ms target, the 
 dither surviving to the framebuffer, ribbon edge jitter at 0.08 px median, and category
 reordering end to end — including the order surviving a force-stop.
 
+**The signed release build**, which is what the Download link serves, was installed on the
+Nebula box and run. R8 and the resource shrinker are the risk in a Compose app — they are
+where a release build fails while the debug build it was cut from works — so what matters is
+that it starts at all: no `ClassNotFoundException`, no `VerifyError`, nothing in logcat from
+`AndroidRuntime`. It reaches the home screen, the PS3 drawables render (the shrinker renames
+resource *files*, so seeing them on screen is the only honest check), `PackageManager` icons
+decode in the Apps column, D-pad navigation works, and the process survives it. The package
+flags no longer carry `DEBUGGABLE`.
+
+One number moved the right way: `Slow UI thread` went from 103 frames of 266 on the debug
+build to **0**, which is R8 doing what it is for. Overall jank still reads high — 161 of 195
+frames — but that figure counts anything over 16 ms, and the frame pump deliberately targets
+33 ms on this hardware, so almost every frame is "janky" by a measure the app is not trying
+to satisfy. The 50th percentile of 25 ms is the number to read.
+
 **What has not been checked where.** The Fire TV figures above predate the background
 rewrite, the PS3 icon artwork, the preview-program path in Continue Watching and the
-rearrangeable category row; that box has been off the network since, so those four were
-verified on the Nebula box only. Neither device is a Google-certified Android TV or
-Google TV box, so the Google TV row in the install table is standard platform procedure
-rather than something measured here.
+rearrangeable category row; that box has been off the network since, so those were verified
+on the Nebula box only — including everything in the paragraph above. Neither device is a
+Google-certified Android TV or Google TV box, so the Google TV row in the install table is
+standard platform procedure rather than something measured here.
 
 ---
 
