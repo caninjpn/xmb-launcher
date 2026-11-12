@@ -51,15 +51,47 @@ for preferred in com.amazon.tv.launcher com.google.android.apps.tv.launcherx com
   [ -n "$stock" ] && break
 done
 [ -n "$stock" ] || stock="$(printf '%s\n' "$homes" | grep -v "^$PKG/" | grep -viE 'fallbackhome|setupwraith|setupwizard' | head -1)"
+# The oldest backup is the one taken before any change, so it is the authority on what
+# "the way it was" means -- used by the HOME handback below as well as the settings.
+backup_first="$(ls -d "$STATE"/backup-*/ 2>/dev/null | head -1)"
+
 if [ -n "$stock" ]; then
   echo "home -> $stock: $(tv_sh cmd package set-home-activity "$stock")"
 else
-  echo "No stock launcher found among HOME apps:" >&2
-  printf '%s\n' "$homes" >&2
+  # A disabled package registers no activities, so a stock launcher someone turned off is
+  # invisible to query-activities above. That is the normal state of a debloated box, and
+  # "no stock launcher found" is useless there: say which one is sitting disabled.
+  echo "No ENABLED stock launcher among the HOME apps:" >&2
+  printf '%s\n' "$homes" | sed 's/^/  /' >&2
+  inst_l="$(tv_sh pm list packages --user 0 | sed 's/^package://')"
+  dis_l="$(tv_sh pm list packages -d --user 0 | sed 's/^package://')"
+  found=0
+  for cand in com.amazon.tv.launcher com.google.android.apps.tv.launcherx \
+              com.google.android.tvlauncher com.google.android.leanbacklauncher tv.widgetv.home; do
+    printf '%s\n' "$inst_l" | grep -qx "$cand" || continue
+    printf '%s\n' "$dis_l"  | grep -qx "$cand" || continue
+    found=1
+    was_off=no
+    if [ -n "$backup_first" ] && [ -f "${backup_first}packages-disabled.txt" ]; then
+      grep -q "^package:$cand" "${backup_first}packages-disabled.txt" && was_off=yes
+    fi
+    if [ "$was_off" = yes ]; then
+      echo "  $cand is installed but disabled -- and it was ALREADY disabled in your first" >&2
+      echo "  backup, so this script leaves it alone: that IS the state it restores to." >&2
+    else
+      echo "  $cand is installed but disabled, and this repo is not what disabled it." >&2
+    fi
+    echo "  Turn it back on yourself if you want the old home screen:" >&2
+    echo "    adb -s $TV shell pm enable --user 0 $cand" >&2
+  done
+  if [ "$found" = 0 ]; then
+    echo "  No known stock launcher package is installed either. Ember XMB may be the only" >&2
+    echo "  real HOME app this box has; removing it would leave you on FallbackHome." >&2
+  fi
 fi
 
 # --- Settings from the first backup, if there is one.
-backup="$(ls -d "$STATE"/backup-*/ 2>/dev/null | head -1)"
+backup="$backup_first"
 get_setting() { [ -n "$backup" ] && [ -f "$backup/settings-$1.txt" ] && grep -m1 "^$2=" "$backup/settings-$1.txt" | cut -d= -f2- | tr -d '\r'; }
 restore_setting() {
   local v; v="$(get_setting "$1" "$2")"

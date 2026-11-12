@@ -249,7 +249,14 @@ tools/restore.sh                  # put everything back
 | `restore.sh` | Re-enable everything, hand HOME back to the stock launcher, restore settings. `--fire-tv` also re-enables [`tools/fire-tv-packages.txt`](tools/fire-tv-packages.txt); `--uninstall-launcher` removes Ember XMB too. |
 
 Nothing is ever uninstalled: `pm disable-user` hides a package from the current user, so
-everything `disable.sh` touches can be put back exactly as it was. `tools/tv.conf` and `state/`
+everything `disable.sh` touches can be put back exactly as it was.
+
+`restore.sh` will not always find a home screen to hand back to. A disabled package registers
+no activities, so a stock launcher that was turned off is invisible to `query-activities` —
+which is the normal state of a box that has been debloated once already. Rather than report
+nothing useful, it names the launcher sitting disabled and gives you the `pm enable` line. If
+that launcher was *already* disabled in your first backup, it says so and leaves it alone,
+because off is the state it is restoring to. `tools/tv.conf` and `state/`
 are gitignored — the snapshots contain the device serial and MAC addresses.
 
 [`PROMPT.md`](PROMPT.md) is the same workflow written for an AI coding assistant to carry out,
